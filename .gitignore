@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# private planning docs — not for the public repo
+/ROADMAP.md
+/ROADMAP.pdf
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
