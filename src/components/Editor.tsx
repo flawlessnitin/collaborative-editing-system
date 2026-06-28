@@ -1,13 +1,25 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration"
 import * as Y from "yjs";
-
+import {IndexeddbPersistence} from "y-indexeddb"
 
 const Editor = () => {
   const [doc] = useState(() => new Y.Doc());
+
+  useEffect(() => {
+    const persistence = new IndexeddbPersistence("my-document", doc);
+    persistence.on("synced", () => {
+      console.log("Loaded data from indexeddb");
+    });
+
+    return () => {
+      persistence.destroy();
+    };
+  }, [doc]);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
