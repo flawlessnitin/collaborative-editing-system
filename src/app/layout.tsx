@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import ConnectionStatus from "@/components/ConnectionStatus";
 import Footer from "@/components/Footer";
 
 const geistSans = Geist({
@@ -29,6 +30,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <header className="flex items-center justify-between border-b p-4">
+          <h1 className="text-lg font-bold">Collaborative Document Editor</h1>
+          <ConnectionStatus />
+        </header>
         <main className="flex-1">{children}</main>
         <Footer />
       </body>
