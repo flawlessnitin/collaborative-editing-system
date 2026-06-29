@@ -10,7 +10,6 @@ const adapter = new PrismaNeon({
 });
 
 declare global {
-  // eslint-disable-next-line no-var
   var prismaGlobal: PrismaClient | undefined;
 }
 
