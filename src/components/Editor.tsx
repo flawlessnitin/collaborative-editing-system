@@ -5,6 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration"
 import * as Y from "yjs";
 import {IndexeddbPersistence} from "y-indexeddb"
+import { enqueueUpdate } from "@/lib/outbox";
 
 const Editor = () => {
   const [doc] = useState(() => new Y.Doc());
@@ -15,8 +16,14 @@ const Editor = () => {
       console.log("Loaded data from indexeddb");
     });
 
+    const handleUpdate = (update: Uint8Array) => {
+      enqueueUpdate(update);
+    };
+    doc.on("update", handleUpdate);
+
     return () => {
       persistence.destroy();
+      doc.off("update", handleUpdate);
     };
   }, [doc]);
 
