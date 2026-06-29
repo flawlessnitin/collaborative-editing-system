@@ -8,7 +8,58 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
-
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  owner
+  editor
+  viewer
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  documents    Document[]
+  memberships  Membership[]
+  updates     DocUpdate[]
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  title       String
+  state       Bytes
+  stateVector Bytes
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  ownerId     String
+  owner       User         @relation(fields: [ownerId], references: [id])
+  memberships Membership[]
+  updates     DocUpdate[]
+}
+
+model DocUpdate {
+  id         BigInt   @id @default(autoincrement())
+  documentId String
+  update     Bytes
+  authorId   String
+  createdAt  DateTime @default(now())
+  document   Document @relation(fields: [documentId], references: [id])
+  author     User     @relation(fields: [authorId], references: [id])
+
+  @@index([documentId, id])
+}
+
+model Membership {
+  userId     String
+  documentId String
+  role       Role
+  user       User     @relation(fields: [userId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@id([documentId, userId])
 }
