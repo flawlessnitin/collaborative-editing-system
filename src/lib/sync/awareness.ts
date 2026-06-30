@@ -18,19 +18,27 @@ function base64ToUint8Array(base64: string): Uint8Array {
 }
 
 export async function syncAwareness(documentId: string, awareness: Awareness): Promise<void> {
+  const url = `/api/documents/${documentId}/presence`;
   const localUpdate = encodeAwarenessUpdate(awareness, [awareness.clientID]);
 
-  const response = await fetch(`/api/documents/${documentId}/presence`, {
+  const pushResponse = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ awareness: uint8ArrayToBase64(localUpdate) }),
   });
 
-  if (!response.ok) {
-    throw new Error(`Presence/awareness push failed with status ${response.status}`);
+  if (!pushResponse.ok) {
+    throw new Error(`Presence/awareness push failed with status ${pushResponse.status}`);
   }
 
-  const { users }: { users: { awareness: string | null }[] } = await response.json();
+  // The POST only ever returns { success: true } — other users' states come
+  // from a separate GET, same push/pull split as the document sync engine.
+  const pullResponse = await fetch(url);
+  if (!pullResponse.ok) {
+    throw new Error(`Presence/awareness pull failed with status ${pullResponse.status}`);
+  }
+
+  const { users }: { users: { awareness: string | null }[] } = await pullResponse.json();
 
   for (const user of users) {
     if (!user.awareness) continue;
