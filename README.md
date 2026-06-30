@@ -118,17 +118,30 @@ deliberately small given the time budget: it demonstrates the integration point 
 out to a model, handling its failure modes without blocking the editor) rather than
 building a larger AI feature surface.
 
-## What's not covered
+## Testing
 
-- **Automated test suite.** Sync engine, restore-as-diff, and the authorization fortress
-  were verified manually against the live dev server during development (scripted
-  end-to-end checks against real HTTP routes, including adversarial cases — oversized
-  payload, malformed Yjs bytes, viewer attempting a push, concurrent push-after-restore)
-  rather than committed as a CI-running test suite. Given more time, the sync engine and
-  merge/restore logic are the highest-value targets for unit + integration tests, since
-  that's where a regression would be both likely and hard to notice manually.
-- **True sub-second live cursors.** As above — this is a deliberate consequence of the
-  serverless/no-WebSocket constraint, not an unsolved bug.
+`pnpm test` runs the Vitest unit suite (`src/lib/**/__tests__/*.test.ts`), focused on the
+properties that actually matter for a CRDT sync system — not coverage percentage:
+
+- **`merge.test.ts`** — two clients editing offline from the same base state converge to
+  identical content regardless of which update is applied first (CRDT commutativity);
+  merging is idempotent; structurally malformed update bytes are rejected instead of
+  corrupting state.
+- **`restore.test.ts`** — restoring a version reproduces the snapshot's content exactly;
+  and the critical safety property — a collaborator's offline edit, made *before* a
+  restore they didn't know about, still merges in cleanly afterward with no data loss or
+  thrown error.
+- **`membership.test.ts`** — a regression test for a real bug caught during development:
+  role comparisons must be numeric rank, not string comparison (`"editor" < "owner" <
+  "viewer"` alphabetically, which would silently let a viewer pass an editor-only check).
+
+Beyond this, the sync route's HTTP-level behavior (size cap, auth, zod validation,
+concurrent push-after-restore) was verified with scripted end-to-end checks against the
+live dev server during development rather than committed as integration tests — that's
+the next highest-value addition given more time.
+
+**True sub-second live cursors** are out of scope for the same reason described above —
+a deliberate consequence of the serverless/no-WebSocket constraint, not an unsolved bug.
 
 ## Real-world scaling considerations
 
@@ -155,9 +168,10 @@ pnpm dev
 ```
 
 Requires a `.env` with `DATABASE_URL`, `DIRECT_URL` (Neon pooled + direct connection
-strings), `JWT_SECRET`, `RESEND_API_KEY`, and `NEXT_PUBLIC_APP_URL`.
+strings), `JWT_SECRET`, `RESEND_API_KEY`, `GEMINI_API_KEY`, and `NEXT_PUBLIC_APP_URL`.
 
 ```bash
+pnpm test                      # run the unit suite
 pnpm exec prisma migrate dev   # apply schema
 ```
 

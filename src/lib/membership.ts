@@ -1,11 +1,19 @@
 import { Role } from "@/generated/prisma/enums";
 import prisma from "./prisma";
 
-const ROLE_RANK: Record<Role, number> = {
+export const ROLE_RANK: Record<Role, number> = {
   viewer: 1,
   editor: 2,
   owner: 3,
 };
+
+// Pulled out as its own pure function so it can be unit-tested directly —
+// this is the exact spot a prior bug lived: comparing roles with `<` directly
+// (string comparison, which sorts alphabetically: "editor" < "owner" <
+// "viewer") let a viewer pass an editor-minimum check.
+export function meetsMinRole(role: Role, minRole: Role): boolean {
+  return ROLE_RANK[role] >= ROLE_RANK[minRole];
+}
 
 export async function assertMembership(userId: string, documentId: string, minRole: Role) {
   const membership = await prisma.membership.findUnique({
@@ -21,7 +29,7 @@ export async function assertMembership(userId: string, documentId: string, minRo
     return null;
   }
 
-  if (ROLE_RANK[membership.role] < ROLE_RANK[minRole]) {
+  if (!meetsMinRole(membership.role, minRole)) {
     return null;
   }
 
