@@ -22,6 +22,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # tsc and the test suite both transitively import the generated Prisma
+      # client (src/generated/prisma is gitignored, only produced by this
+      # step) — must run before lint/typecheck/test, not just before build.
+      - run: pnpm exec prisma generate
+
       - run: pnpm lint
 
       - run: pnpm exec tsc --noEmit
