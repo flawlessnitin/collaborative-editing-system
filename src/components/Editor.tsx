@@ -35,10 +35,12 @@ const Editor = ({
   documentId,
   currentUserId,
   currentUserName,
+  canEdit,
 }: {
   documentId: string;
   currentUserId: string;
   currentUserName: string;
+  canEdit: boolean;
 }) => {
   const [doc] = useState(() => new Y.Doc());
   const [awareness] = useState(() => new Awareness(doc));
@@ -118,6 +120,7 @@ const Editor = ({
         },
       }),
     ],
+    editable: canEdit,
     editorProps: {
       attributes: {
         class: "min-h-[400px] w-full max-w-3xl mx-auto rounded-md border p-4 focus:outline-none "

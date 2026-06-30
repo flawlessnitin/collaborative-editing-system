@@ -64,7 +64,18 @@ export default async function DocumentPage({
         </div>
       )}
 
-      <Editor documentId={id} currentUserId={session.userId} currentUserName={currentUserName} />
+      {!canEdit && (
+        <div className="mx-4 rounded-md bg-amber-50 p-3 text-center text-sm text-amber-700">
+          You have view-only access to this document.
+        </div>
+      )}
+
+      <Editor
+        documentId={id}
+        currentUserId={session.userId}
+        currentUserName={currentUserName}
+        canEdit={canEdit}
+      />
     </div>
   );
 }
