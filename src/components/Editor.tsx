@@ -14,14 +14,21 @@ import { syncAwareness } from "@/lib/sync/awareness";
 const SYNC_INTERVAL_MS = 3000;
 const PUSH_DEBOUNCE_MS = 800;
 
-// Deterministic per-user color so the same person always gets the same
-// cursor color across sessions/tabs, without storing a color anywhere.
+// y-prosemirror/y-tiptap's cursor rendering only accepts 6-digit hex colors
+// (validated against /^#[0-9a-fA-F]{6}$/ internally) — hsl()/rgb() strings
+// fail that check. Picking from a fixed hex palette, deterministically
+// per-user, so the same person always gets the same cursor color.
+const CURSOR_COLORS = [
+  "#f97316", "#ef4444", "#22c55e", "#3b82f6",
+  "#a855f7", "#ec4899", "#14b8a6", "#eab308",
+];
+
 function colorForUser(userId: string): string {
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
     hash = userId.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return `hsl(${Math.abs(hash) % 360}, 70%, 45%)`;
+  return CURSOR_COLORS[Math.abs(hash) % CURSOR_COLORS.length];
 }
 
 const Editor = ({
