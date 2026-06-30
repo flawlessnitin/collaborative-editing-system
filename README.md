@@ -4,7 +4,7 @@ A local-first, real-time collaborative document editor with offline sync, determ
 conflict resolution, and version history — built for the House of Edtech full-stack
 take-home assignment.
 
-**Live deployment:** https://collaborative-document-editor-woad.vercel.app
+**Live deployment:** https://doc.flawlessnitin.com
 
 ## Stack
 

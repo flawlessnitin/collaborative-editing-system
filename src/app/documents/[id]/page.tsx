@@ -5,6 +5,7 @@ import Editor from "@/components/Editor";
 import ShareDialog from "@/components/ShareDialog";
 import VersionHistoryDialog from "@/components/VersionHistoryDialog";
 import PresenceIndicator from "@/components/PresenceIndicator";
+import SummarizeButton from "@/components/SummarizeButton";
 import prisma from "@/lib/prisma";
 
 export default async function DocumentPage({
@@ -51,6 +52,7 @@ export default async function DocumentPage({
           <PresenceIndicator documentId={id} />
         </div>
         <div className="flex items-center gap-2">
+          <SummarizeButton documentId={id} />
           <VersionHistoryDialog documentId={id} versions={versions} canEdit={canEdit} />
           {membership.role === "owner" && (
             <ShareDialog documentId={id} collaborators={memberships} />
