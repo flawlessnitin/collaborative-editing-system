@@ -1,9 +1,15 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 const ConnectionStatus = () => {
-  const [isOnline, setIsOnline] = useState(() =>
-    typeof navigator !== "undefined" ? navigator.onLine : true
-  );
+  // Deliberately deterministic (always true) on the very first render, on
+  // both server and client — reading the real navigator.onLine here would
+  // make the client's first render diverge from the server-rendered HTML
+  // whenever real connectivity happens to be false at that exact moment,
+  // causing a hydration-mismatch error (and a full client-side tree
+  // discard/re-render to recover). checkConnectivity() below corrects this
+  // to the real value immediately after mount instead, which is a normal
+  // post-hydration update, not a mismatch.
+  const [isOnline, setIsOnline] = useState(true);
 
   const checkConnectivity = useCallback(async () => {
     try {
