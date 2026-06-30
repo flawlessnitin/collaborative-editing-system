@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth/session";
 import { assertMembership } from "@/lib/membership";
 import { inviteSchema } from "@/lib/validations/membership";
+import { sendInviteEmail } from "@/lib/email";
 
 export async function createDocumentAction() {
   const session = await getSession();
@@ -77,6 +78,21 @@ export async function inviteCollaboratorAction(documentId: string, formData: For
     where: { documentId_userId: { documentId, userId: invitedUser.id } },
     create: { documentId, userId: invitedUser.id, role },
     update: { role },
+  });
+
+  const [document, inviter] = await Promise.all([
+    prisma.document.findUnique({ where: { id: documentId }, select: { title: true } }),
+    prisma.user.findUnique({ where: { id: session.userId }, select: { name: true } }),
+  ]);
+
+  // Access is already granted at this point — email is a notification on
+  // top, not a precondition, so its own internal try/catch handles failure.
+  await sendInviteEmail({
+    to: email,
+    documentTitle: document?.title ?? "a document",
+    documentId,
+    inviterName: inviter?.name ?? "Someone",
+    role,
   });
 
   redirect(`/documents/${documentId}`);
