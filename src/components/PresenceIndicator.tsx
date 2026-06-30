@@ -47,7 +47,7 @@ const PresenceIndicator = ({ documentId }: { documentId: string }) => {
 
   return (
     <div className="flex items-center gap-1" aria-live="polite">
-      <span className="text-xs text-gray-500">Active now:</span>
+      <span className="text-xs text-muted-foreground">Active now:</span>
       {activeUsers.map((user) => (
         <Badge key={user.userId} variant="secondary">
           {user.name}

@@ -58,7 +58,7 @@ const VersionHistoryDialog = ({
 
         <ul className="space-y-2 max-h-72 overflow-y-auto">
           {versions.length === 0 && (
-            <li className="text-sm text-gray-500">No versions captured yet.</li>
+            <li className="text-sm text-muted-foreground">No versions captured yet.</li>
           )}
           {versions.map((version) => {
             const restoreAction = restoreVersionAction.bind(null, documentId, version.id);
@@ -66,7 +66,7 @@ const VersionHistoryDialog = ({
               <li key={version.id} className="flex items-center justify-between text-sm gap-2">
                 <span className="truncate">
                   {version.label}
-                  <span className="text-gray-500">
+                  <span className="text-muted-foreground">
                     {" "}
                     — {version.author.name}, {new Date(version.createdAt).toLocaleString()}
                   </span>

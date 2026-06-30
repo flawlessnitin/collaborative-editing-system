@@ -6,6 +6,7 @@ import ShareDialog from "@/components/ShareDialog";
 import VersionHistoryDialog from "@/components/VersionHistoryDialog";
 import PresenceIndicator from "@/components/PresenceIndicator";
 import SummarizeButton from "@/components/SummarizeButton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import prisma from "@/lib/prisma";
 
 export default async function DocumentPage({
@@ -46,12 +47,12 @@ export default async function DocumentPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between border-b px-4 py-2">
+      <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">Your role: {membership.role}</span>
+          <span className="text-sm text-muted-foreground">Your role: {membership.role}</span>
           <PresenceIndicator documentId={id} />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <SummarizeButton documentId={id} />
           <VersionHistoryDialog documentId={id} versions={versions} canEdit={canEdit} />
           {membership.role === "owner" && (
@@ -61,15 +62,15 @@ export default async function DocumentPage({
       </div>
 
       {error && (
-        <div className="mx-4 rounded-md bg-red-50 p-3 text-center text-sm text-red-600">
-          {error}
-        </div>
+        <Alert variant="destructive" role="alert" className="mx-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {!canEdit && (
-        <div className="mx-4 rounded-md bg-amber-50 p-3 text-center text-sm text-amber-700">
-          You have view-only access to this document.
-        </div>
+        <Alert className="mx-4">
+          <AlertDescription>You have view-only access to this document.</AlertDescription>
+        </Alert>
       )}
 
       <Editor

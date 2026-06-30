@@ -38,9 +38,9 @@ const SummarizeButton = ({ documentId }: { documentId: string }) => {
           <DialogTitle>AI Summary</DialogTitle>
         </DialogHeader>
 
-        {loading && <p className="text-sm text-gray-500">Summarizing…</p>}
+        {loading && <p className="text-sm text-muted-foreground">Summarizing…</p>}
         {!loading && result && "error" in result && (
-          <p className="text-sm text-red-600">{result.error}</p>
+          <p className="text-sm text-destructive">{result.error}</p>
         )}
         {!loading && result && "summary" in result && (
           <p className="text-sm leading-relaxed">{result.summary}</p>

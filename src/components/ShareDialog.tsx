@@ -53,7 +53,7 @@ const ShareDialog = ({
           {collaborators.map((c) => (
             <li key={c.userId} className="flex items-center justify-between text-sm">
               <span>
-                {c.user.name} <span className="text-gray-500">({c.user.email})</span>
+                {c.user.name} <span className="text-muted-foreground">({c.user.email})</span>
               </span>
               <Badge variant="secondary">{c.role}</Badge>
             </li>

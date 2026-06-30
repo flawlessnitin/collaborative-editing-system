@@ -27,17 +27,17 @@ export default async function Home() {
       </div>
 
       {memberships.length === 0 ? (
-        <p className="text-sm text-gray-500">No documents yet — create one to get started.</p>
+        <p className="text-sm text-muted-foreground">No documents yet — create one to get started.</p>
       ) : (
         <ul className="space-y-2">
           {memberships.map((membership) => (
             <li key={membership.documentId}>
               <Link
                 href={`/documents/${membership.documentId}`}
-                className="flex items-center justify-between rounded-md border p-3 hover:bg-gray-50 dark:hover:bg-zinc-900"
+                className="flex items-center justify-between rounded-md border p-3 hover:bg-accent"
               >
                 <span>{membership.document.title}</span>
-                <span className="text-xs text-gray-500">{membership.role}</span>
+                <span className="text-xs text-muted-foreground">{membership.role}</span>
               </Link>
             </li>
           ))}
