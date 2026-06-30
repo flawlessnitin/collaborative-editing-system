@@ -1,11 +1,13 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import * as Y from "yjs";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth/session";
 import { assertMembership } from "@/lib/membership";
 import { inviteSchema } from "@/lib/validations/membership";
+import { renameDocumentSchema } from "@/lib/validations/document";
 import { sendInviteEmail } from "@/lib/email";
 
 export async function createDocumentAction() {
@@ -37,6 +39,34 @@ export async function createDocumentAction() {
   });
 
   redirect(`/documents/${document.id}`);
+}
+
+export async function renameDocumentAction(documentId: string, formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    redirect("/login");
+  }
+
+  // Editors can write content, so renaming (a content-level edit, not an
+  // access-control decision) is allowed for editor+ — unlike inviting,
+  // which is owner-only.
+  const membership = await assertMembership(session.userId, documentId, "editor");
+  if (!membership) {
+    return;
+  }
+
+  const result = renameDocumentSchema.safeParse({ title: formData.get("title") });
+  if (!result.success) {
+    return;
+  }
+
+  await prisma.document.update({
+    where: { id: documentId },
+    data: { title: result.data.title },
+  });
+
+  revalidatePath(`/documents/${documentId}`);
+  revalidatePath("/");
 }
 
 export async function inviteCollaboratorAction(documentId: string, formData: FormData) {
