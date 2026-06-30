@@ -4,6 +4,7 @@ import { assertMembership } from "@/lib/membership";
 import Editor from "@/components/Editor";
 import ShareDialog from "@/components/ShareDialog";
 import VersionHistoryDialog from "@/components/VersionHistoryDialog";
+import PresenceIndicator from "@/components/PresenceIndicator";
 import prisma from "@/lib/prisma";
 
 export default async function DocumentPage({
@@ -43,7 +44,10 @@ export default async function DocumentPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between border-b px-4 py-2">
-        <span className="text-sm text-gray-500">Your role: {membership.role}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">Your role: {membership.role}</span>
+          <PresenceIndicator documentId={id} />
+        </div>
         <div className="flex items-center gap-2">
           <VersionHistoryDialog documentId={id} versions={versions} canEdit={canEdit} />
           {membership.role === "owner" && (

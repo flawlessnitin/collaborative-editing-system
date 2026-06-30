@@ -27,6 +27,7 @@ model User {
   memberships  Membership[]
   updates     DocUpdate[]
   versions     Version[]
+  presences    Presence[]
   createdAt DateTime @default(now())
 }
 
@@ -42,6 +43,7 @@ model Document {
   memberships Membership[]
   updates     DocUpdate[]
   versions    Version[]
+  presences   Presence[]
 }
 
 model Version {
@@ -73,6 +75,19 @@ model Membership {
   userId     String
   documentId String
   role       Role
+  user       User     @relation(fields: [userId], references: [id])
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@id([documentId, userId])
+}
+
+// Ephemeral "who's currently here" — overwritten on every heartbeat, never
+// appended to. Deliberately not the same kind of data as DocUpdate/Version,
+// which are permanent history; this is just a liveness marker.
+model Presence {
+  userId     String
+  documentId String
+  lastSeenAt DateTime @updatedAt
   user       User     @relation(fields: [userId], references: [id])
   document   Document @relation(fields: [documentId], references: [id])
 

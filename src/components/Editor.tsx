@@ -8,7 +8,8 @@ import {IndexeddbPersistence} from "y-indexeddb"
 import { enqueueUpdate } from "@/lib/outbox";
 import { syncDocument } from "@/lib/sync/engine";
 
-const SYNC_INTERVAL_MS = 10000;
+const SYNC_INTERVAL_MS = 3000;
+const PUSH_DEBOUNCE_MS = 800;
 
 const Editor = ({ documentId }: { documentId: string }) => {
   const [doc] = useState(() => new Y.Doc());
@@ -19,6 +20,13 @@ const Editor = ({ documentId }: { documentId: string }) => {
       console.log("Loaded data from indexeddb");
     });
 
+    const sync = () => {
+      syncDocument(documentId, doc).catch((error) => {
+        console.error("Sync failed:", error);
+      });
+    };
+
+    let debounceId: ReturnType<typeof setTimeout> | undefined;
     const handleUpdate = (update: Uint8Array, origin: unknown) => {
       // Updates we just pulled from the server are tagged "remote" — re-queuing
       // them would push them straight back, looping for no reason.
@@ -26,28 +34,24 @@ const Editor = ({ documentId }: { documentId: string }) => {
         return;
       }
       enqueueUpdate(documentId, update);
+
+      // Push shortly after typing pauses, rather than waiting for the next
+      // interval tick — cuts latency on the sending side specifically; the
+      // interval below remains the fallback for "nobody typed, but pull
+      // whatever everyone else pushed."
+      clearTimeout(debounceId);
+      debounceId = setTimeout(sync, PUSH_DEBOUNCE_MS);
     };
     doc.on("update", handleUpdate);
 
-    return () => {
-      persistence.destroy();
-      doc.off("update", handleUpdate);
-    };
-  }, [documentId, doc]);
-
-  useEffect(() => {
-    const sync = () => {
-      syncDocument(documentId, doc).catch((error) => {
-        console.error("Sync failed:", error);
-      });
-    };
-
     sync();
-
     const intervalId = setInterval(sync, SYNC_INTERVAL_MS);
     window.addEventListener("online", sync);
 
     return () => {
+      persistence.destroy();
+      doc.off("update", handleUpdate);
+      clearTimeout(debounceId);
       clearInterval(intervalId);
       window.removeEventListener("online", sync);
     };
