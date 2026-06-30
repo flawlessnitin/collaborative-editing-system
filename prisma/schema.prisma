@@ -88,6 +88,9 @@ model Presence {
   userId     String
   documentId String
   lastSeenAt DateTime @updatedAt
+  // Encoded y-protocols/awareness update (cursor position + user color),
+  // carried over the same polling channel as the liveness heartbeat.
+  awareness  Bytes?
   user       User     @relation(fields: [userId], references: [id])
   document   Document @relation(fields: [documentId], references: [id])
 

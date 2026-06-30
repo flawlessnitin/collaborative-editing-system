@@ -10,7 +10,7 @@ import prisma from "@/lib/prisma";
 const ACTIVE_WINDOW_MS = 10_000;
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getSession();
@@ -25,17 +25,29 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // Awareness payload is optional — the plain heartbeat (no body) still
+  // works and just refreshes lastSeenAt without touching a prior awareness
+  // value, since it's only included in the update when actually provided.
+  let awarenessBytes: Uint8Array<ArrayBuffer> | undefined;
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && contentLength !== "0") {
+    const body = await request.json().catch(() => null);
+    if (typeof body?.awareness === "string") {
+      awarenessBytes = new Uint8Array(Buffer.from(body.awareness, "base64"));
+    }
+  }
+
   await prisma.presence.upsert({
     where: { documentId_userId: { documentId, userId: session.userId } },
-    create: { documentId, userId: session.userId },
-    update: {}, // lastSeenAt is @updatedAt — touching the row is enough
+    create: { documentId, userId: session.userId, awareness: awarenessBytes },
+    update: awarenessBytes ? { awareness: awarenessBytes } : {},
   });
 
   return NextResponse.json({ success: true });
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getSession();
@@ -54,11 +66,18 @@ export async function GET(
     where: {
       documentId,
       lastSeenAt: { gte: new Date(Date.now() - ACTIVE_WINDOW_MS) },
+      // Excludes the caller's own row — a client never needs its own
+      // awareness state echoed back to it.
+      userId: { not: session.userId },
     },
     include: { user: { select: { name: true } } },
   });
 
   return NextResponse.json({
-    users: active.map((entry) => ({ userId: entry.userId, name: entry.user.name })),
+    users: active.map((entry) => ({
+      userId: entry.userId,
+      name: entry.user.name,
+      awareness: entry.awareness ? Buffer.from(entry.awareness).toString("base64") : null,
+    })),
   });
 }

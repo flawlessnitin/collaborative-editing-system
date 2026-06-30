@@ -3,16 +3,38 @@ import { useEffect, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration"
+import CollaborationCaret from "@tiptap/extension-collaboration-caret";
+import { Awareness } from "y-protocols/awareness";
 import * as Y from "yjs";
 import {IndexeddbPersistence} from "y-indexeddb"
 import { enqueueUpdate } from "@/lib/outbox";
 import { syncDocument } from "@/lib/sync/engine";
+import { syncAwareness } from "@/lib/sync/awareness";
 
 const SYNC_INTERVAL_MS = 3000;
 const PUSH_DEBOUNCE_MS = 800;
 
-const Editor = ({ documentId }: { documentId: string }) => {
+// Deterministic per-user color so the same person always gets the same
+// cursor color across sessions/tabs, without storing a color anywhere.
+function colorForUser(userId: string): string {
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return `hsl(${Math.abs(hash) % 360}, 70%, 45%)`;
+}
+
+const Editor = ({
+  documentId,
+  currentUserId,
+  currentUserName,
+}: {
+  documentId: string;
+  currentUserId: string;
+  currentUserName: string;
+}) => {
   const [doc] = useState(() => new Y.Doc());
+  const [awareness] = useState(() => new Awareness(doc));
 
   useEffect(() => {
     const persistence = new IndexeddbPersistence(documentId, doc);
@@ -57,6 +79,22 @@ const Editor = ({ documentId }: { documentId: string }) => {
     };
   }, [documentId, doc]);
 
+  useEffect(() => {
+    const tick = () => {
+      syncAwareness(documentId, awareness).catch((error) => {
+        console.error("Awareness sync failed:", error);
+      });
+    };
+
+    tick();
+    const intervalId = setInterval(tick, SYNC_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+      awareness.destroy();
+    };
+  }, [documentId, awareness]);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -64,6 +102,13 @@ const Editor = ({ documentId }: { documentId: string }) => {
       }),
       Collaboration.configure({
         document: doc
+      }),
+      CollaborationCaret.configure({
+        provider: { awareness },
+        user: {
+          name: currentUserName,
+          color: colorForUser(currentUserId),
+        },
       }),
     ],
     editorProps: {

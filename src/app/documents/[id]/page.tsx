@@ -40,6 +40,8 @@ export default async function DocumentPage({
   ]);
 
   const canEdit = membership.role === "owner" || membership.role === "editor";
+  const currentUserName =
+    memberships.find((entry) => entry.userId === session.userId)?.user.name ?? "Anonymous";
 
   return (
     <div className="space-y-4">
@@ -62,7 +64,7 @@ export default async function DocumentPage({
         </div>
       )}
 
-      <Editor documentId={id} />
+      <Editor documentId={id} currentUserId={session.userId} currentUserName={currentUserName} />
     </div>
   );
 }

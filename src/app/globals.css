@@ -128,3 +128,35 @@
     @apply font-sans;
   }
 }
+
+/* Remote collaborator cursors (@tiptap/extension-collaboration-caret) — the
+   extension only sets border/background-color inline; size/position needs
+   its own rules or the caret + name label render invisibly thin/unreadable. */
+.collaboration-carets__caret {
+  position: relative;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 1px solid;
+  border-right: 1px solid;
+  word-break: normal;
+  pointer-events: none;
+}
+
+.collaboration-carets__label {
+  position: absolute;
+  top: -1.4em;
+  left: -1px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1;
+  color: white;
+  white-space: nowrap;
+  border-radius: 3px 3px 3px 0;
+  padding: 2px 6px;
+  user-select: none;
+}
+
+.collaboration-carets__selection {
+  border-radius: 2px;
+}
