@@ -26,6 +26,7 @@ model User {
   documents    Document[]
   memberships  Membership[]
   updates     DocUpdate[]
+  versions     Version[]
   createdAt DateTime @default(now())
 }
 
@@ -40,6 +41,20 @@ model Document {
   owner       User         @relation(fields: [ownerId], references: [id])
   memberships Membership[]
   updates     DocUpdate[]
+  versions    Version[]
+}
+
+model Version {
+  id         String   @id @default(cuid())
+  documentId String
+  label      String
+  state      Bytes
+  authorId   String
+  createdAt  DateTime @default(now())
+  document   Document @relation(fields: [documentId], references: [id])
+  author     User     @relation(fields: [authorId], references: [id])
+
+  @@index([documentId, createdAt])
 }
 
 model DocUpdate {
