@@ -14,7 +14,7 @@ export default async function LoginPage({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
-      <div className="w-full max-w-sm space-y-6 bg-card p-6 sm:p-8 rounded-xl shadow-sm border">
+      <div className="w-full max-w-sm space-y-6 bg-card p-6 sm:p-8 rounded-xl shadow-xl border border-border/60">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Log In</h1>
           <p className="text-sm text-muted-foreground mt-2">Enter your credentials to continue</p>

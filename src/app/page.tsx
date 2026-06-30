@@ -18,25 +18,32 @@ export default async function Home() {
   });
 
   return (
-    <div className="max-w-2xl mx-auto p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Your Documents</h1>
+    <div className="max-w-3xl mx-auto p-6 sm:p-10 space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Your Documents</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Pick up where you left off, or start something new.
+          </p>
+        </div>
         <form action={createDocumentAction}>
           <Button type="submit">New Document</Button>
         </form>
       </div>
 
       {memberships.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No documents yet — create one to get started.</p>
+        <div className="rounded-xl border border-dashed p-10 text-center">
+          <p className="text-sm text-muted-foreground">No documents yet — create one to get started.</p>
+        </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {memberships.map((membership) => (
             <li key={membership.documentId}>
               <Link
                 href={`/documents/${membership.documentId}`}
-                className="flex items-center justify-between rounded-md border p-3 hover:bg-accent"
+                className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md hover:border-primary/40"
               >
-                <span>{membership.document.title}</span>
+                <span className="font-medium">{membership.document.title}</span>
                 <span className="text-xs text-muted-foreground">{membership.role}</span>
               </Link>
             </li>

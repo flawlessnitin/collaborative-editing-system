@@ -35,8 +35,10 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <header className="flex items-center justify-between border-b p-4">
-          <h1 className="text-lg font-bold">Collaborative Document Editor</h1>
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-card/95 p-4 shadow-sm backdrop-blur supports-backdrop-filter:bg-card/80">
+          <h1 className="text-lg font-bold tracking-tight">
+            <span className="text-primary">Collab</span>orative Document Editor
+          </h1>
           <div className="flex items-center gap-4">
             <ConnectionStatus />
             {session && (
