@@ -10,6 +10,8 @@ import {IndexeddbPersistence} from "y-indexeddb"
 import { enqueueUpdate } from "@/lib/outbox";
 import { syncDocument } from "@/lib/sync/engine";
 import { syncAwareness } from "@/lib/sync/awareness";
+import EditorToolbar from "@/components/EditorToolbar";
+import { cn } from "@/lib/utils";
 
 const SYNC_INTERVAL_MS = 3000;
 const PUSH_DEBOUNCE_MS = 800;
@@ -123,14 +125,22 @@ const Editor = ({
     editable: canEdit,
     editorProps: {
       attributes: {
-        class: "min-h-[400px] w-full max-w-3xl mx-auto rounded-md border p-4 focus:outline-none "
-      }
-    }
+        class: cn(
+          "min-h-[400px] w-full p-4 focus:outline-none",
+          canEdit ? "rounded-b-md border border-t-0" : "rounded-md border",
+        ),
+      },
+    },
   });
   if (!editor) {
     return null;
   }
-  return <EditorContent editor={editor} />;
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      {canEdit && <EditorToolbar editor={editor} />}
+      <EditorContent editor={editor} />
+    </div>
+  );
 }
 
 export default Editor
