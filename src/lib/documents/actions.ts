@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import * as Y from "yjs";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth/session";
+import { assertMembership } from "@/lib/membership";
+import { inviteSchema } from "@/lib/validations/membership";
 
 export async function createDocumentAction() {
   const session = await getSession();
@@ -34,4 +36,48 @@ export async function createDocumentAction() {
   });
 
   redirect(`/documents/${document.id}`);
+}
+
+export async function inviteCollaboratorAction(documentId: string, formData: FormData) {
+  const session = await getSession();
+  if (!session) {
+    redirect("/login");
+  }
+
+  // Only the Owner manages access — Editors can write content, not grant access.
+  const membership = await assertMembership(session.userId, documentId, "owner");
+  if (!membership) {
+    redirect(`/documents/${documentId}?error=${encodeURIComponent("Only the owner can invite collaborators")}`);
+  }
+
+  const result = inviteSchema.safeParse({
+    email: formData.get("email"),
+    role: formData.get("role"),
+  });
+
+  if (!result.success) {
+    const message = result.error.issues[0]?.message ?? "Invalid input";
+    redirect(`/documents/${documentId}?error=${encodeURIComponent(message)}`);
+  }
+
+  const { email, role } = result.data;
+
+  const invitedUser = await prisma.user.findUnique({ where: { email } });
+  if (!invitedUser) {
+    redirect(`/documents/${documentId}?error=${encodeURIComponent("No user found with that email")}`);
+  }
+
+  if (invitedUser.id === membership.userId) {
+    redirect(`/documents/${documentId}?error=${encodeURIComponent("You already own this document")}`);
+  }
+
+  // upsert: inviting an existing member again just changes their role,
+  // rather than erroring on the duplicate (documentId, userId) pair.
+  await prisma.membership.upsert({
+    where: { documentId_userId: { documentId, userId: invitedUser.id } },
+    create: { documentId, userId: invitedUser.id, role },
+    update: { role },
+  });
+
+  redirect(`/documents/${documentId}`);
 }
