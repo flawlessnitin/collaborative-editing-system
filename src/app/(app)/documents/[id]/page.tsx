@@ -62,7 +62,7 @@ export default async function DocumentPage({
     memberships.find((entry) => entry.userId === session.userId)?.user.name ?? "Anonymous";
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-col">
       {/* Document header */}
       <div className="border-b px-6 py-4 space-y-2">
         {/* Row 1: Title + action buttons */}

@@ -140,7 +140,7 @@ const Editor = ({
   }
 
   return (
-    <div className="flex-1 overflow-auto p-4 sm:p-6">
+    <div className="p-4 sm:p-6">
       <div className="mx-auto max-w-2xl">
         <div className="rounded-lg border bg-card shadow-sm">
           {canEdit && <EditorToolbar editor={editor} />}
