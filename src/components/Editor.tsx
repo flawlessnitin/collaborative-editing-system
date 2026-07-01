@@ -46,6 +46,7 @@ const Editor = ({
 }) => {
   const [doc] = useState(() => new Y.Doc());
   const [awareness] = useState(() => new Awareness(doc));
+  const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
     const persistence = new IndexeddbPersistence(documentId, doc);
@@ -123,22 +124,33 @@ const Editor = ({
       }),
     ],
     editable: canEdit,
+    onUpdate: ({ editor }) => {
+      const text = editor.getText();
+      setWordCount(
+        text.trim().length === 0 ? 0 : text.trim().split(/\s+/).length,
+      );
+    },
     editorProps: {
       attributes: {
-        class: cn(
-          "min-h-[400px] w-full p-4 focus:outline-none",
-          canEdit ? "rounded-b-md border border-t-0" : "rounded-md border",
-        ),
+        class: "min-h-[60vh] w-full p-8 focus:outline-none",
       },
     },
   });
   if (!editor) {
     return null;
   }
+
   return (
-    <div className="mx-auto w-full max-w-3xl">
-      {canEdit && <EditorToolbar editor={editor} />}
-      <EditorContent editor={editor} />
+    <div className="flex-1 overflow-auto p-4 sm:p-6">
+      <div className="mx-auto max-w-2xl">
+        <div className="rounded-lg border bg-card shadow-sm">
+          {canEdit && <EditorToolbar editor={editor} />}
+          <EditorContent editor={editor} />
+        </div>
+        <p className="mt-2 text-right text-xs text-muted-foreground">
+          {wordCount} {wordCount === 1 ? "word" : "words"}
+        </p>
+      </div>
     </div>
   );
 }
