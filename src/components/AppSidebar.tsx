@@ -37,12 +37,12 @@ export default async function AppSidebar() {
       <div className="px-4 py-4">
         <Link
           href="/"
-          className="flex items-center gap-2 font-bold text-sidebar-foreground"
+          className="flex items-center gap-2.5 font-semibold text-sidebar-foreground"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-indigo-400 to-indigo-600 text-white text-sm font-bold shadow-sm">
             C
           </span>
-          <span>Collab</span>
+          <span className="tracking-tight">Collab</span>
         </Link>
       </div>
 
@@ -51,9 +51,9 @@ export default async function AppSidebar() {
         <form action={createDocumentAction}>
           <Button
             type="submit"
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="w-full justify-start gap-2 bg-sidebar hover:bg-accent"
+            className="w-full justify-start gap-2 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground border border-sidebar-border"
           >
             <PlusIcon className="h-4 w-4" />
             New Document
