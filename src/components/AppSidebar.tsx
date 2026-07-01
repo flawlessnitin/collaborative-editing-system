@@ -6,6 +6,7 @@ import { logoutAction } from "@/lib/auth/actions";
 import { createDocumentAction } from "@/lib/documents/actions";
 import ConnectionStatus from "@/components/ConnectionStatus";
 import SidebarDocList from "@/components/SidebarDocList";
+import ThemeToggle from "@/components/ThemeToggle";
 import prisma from "@/lib/prisma";
 
 export default async function AppSidebar() {
@@ -68,7 +69,7 @@ export default async function AppSidebar() {
         <SidebarDocList docs={docs} />
       </div>
 
-      {/* Footer — ThemeToggle added in Task 4 */}
+      {/* Footer */}
       <div className="border-t px-3 py-3 space-y-2">
         <div className="flex items-center gap-2 px-1">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
@@ -80,17 +81,20 @@ export default async function AppSidebar() {
         </div>
         <div className="flex items-center justify-between px-1">
           <ConnectionStatus />
-          <form action={logoutAction}>
-            <Button
-              type="submit"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground"
-              title="Log out"
-            >
-              <LogOutIcon className="h-4 w-4" />
-            </Button>
-          </form>
+          <div className="flex items-center gap-0.5">
+            <ThemeToggle />
+            <form action={logoutAction}>
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                title="Log out"
+              >
+                <LogOutIcon className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
         </div>
         <p className="px-1 text-[11px] text-sidebar-foreground/30">
           © {new Date().getFullYear()} Nitin Sahu
