@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { assertMembership } from "@/lib/membership";
+import { cn } from "@/lib/utils";
 import Editor from "@/components/Editor";
 import ShareDialog from "@/components/ShareDialog";
 import VersionHistoryDialog from "@/components/VersionHistoryDialog";
@@ -9,6 +10,12 @@ import SummarizeButton from "@/components/SummarizeButton";
 import DocumentTitle from "@/components/DocumentTitle";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import prisma from "@/lib/prisma";
+
+const ROLE_CLASSES: Record<string, string> = {
+  owner: "bg-primary/10 text-primary",
+  editor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  viewer: "bg-muted text-muted-foreground",
+};
 
 export default async function DocumentPage({
   params,
@@ -55,33 +62,53 @@ export default async function DocumentPage({
     memberships.find((entry) => entry.userId === session.userId)?.user.name ?? "Anonymous";
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 border-b px-4 py-3">
-        <DocumentTitle documentId={id} initialTitle={document.title} canEdit={canEdit} />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">Your role: {membership.role}</span>
-            <PresenceIndicator documentId={id} />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+    <div className="flex h-full flex-col">
+      {/* Document header */}
+      <div className="border-b px-6 py-4 space-y-2">
+        {/* Row 1: Title + action buttons */}
+        <div className="flex items-start justify-between gap-4">
+          <DocumentTitle
+            documentId={id}
+            initialTitle={document.title}
+            canEdit={canEdit}
+          />
+          <div className="flex shrink-0 items-center gap-1.5">
             <SummarizeButton documentId={id} />
-            <VersionHistoryDialog documentId={id} versions={versions} canEdit={canEdit} />
+            <VersionHistoryDialog
+              documentId={id}
+              versions={versions}
+              canEdit={canEdit}
+            />
             {membership.role === "owner" && (
               <ShareDialog documentId={id} collaborators={memberships} />
             )}
           </div>
         </div>
+        {/* Row 2: Role badge + presence */}
+        <div className="flex items-center gap-3">
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-xs font-medium",
+              ROLE_CLASSES[membership.role],
+            )}
+          >
+            {membership.role}
+          </span>
+          <PresenceIndicator documentId={id} />
+        </div>
       </div>
 
       {error && (
-        <Alert variant="destructive" role="alert" className="mx-4">
+        <Alert variant="destructive" role="alert" className="mx-6 mt-4">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {!canEdit && (
-        <Alert className="mx-4">
-          <AlertDescription>You have view-only access to this document.</AlertDescription>
+        <Alert className="mx-6 mt-4">
+          <AlertDescription>
+            You have view-only access to this document.
+          </AlertDescription>
         </Alert>
       )}
 
