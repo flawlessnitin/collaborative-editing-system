@@ -11,7 +11,6 @@ import { enqueueUpdate } from "@/lib/outbox";
 import { syncDocument } from "@/lib/sync/engine";
 import { syncAwareness } from "@/lib/sync/awareness";
 import EditorToolbar from "@/components/EditorToolbar";
-import { cn } from "@/lib/utils";
 
 const SYNC_INTERVAL_MS = 3000;
 const PUSH_DEBOUNCE_MS = 800;
