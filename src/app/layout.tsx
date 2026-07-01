@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
-import ConnectionStatus from "@/components/ConnectionStatus";
-import Footer from "@/components/Footer";
-import { getSession } from "@/lib/auth/session";
-import { logoutAction } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/button";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,39 +15,25 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Collaborative Document Editor",
-  description: "A local-first, real-time collaborative document editor with offline sync and version history.",
+  description:
+    "A local-first, real-time collaborative document editor with offline sync and version history.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  const session = await getSession();
-
+}) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-card/95 p-4 shadow-sm backdrop-blur supports-backdrop-filter:bg-card/80">
-          <h1 className="text-lg font-bold tracking-tight">
-            <span className="text-primary">Collab</span>orative Document Editor
-          </h1>
-          <div className="flex items-center gap-4">
-            <ConnectionStatus />
-            {session && (
-              <form action={logoutAction}>
-                <Button variant="outline" size="sm" type="submit">
-                  Log Out
-                </Button>
-              </form>
-            )}
-          </div>
-        </header>
-        <main className="flex-1">{children}</main>
-        <Footer />
+      <body className="min-h-full bg-background text-foreground">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
