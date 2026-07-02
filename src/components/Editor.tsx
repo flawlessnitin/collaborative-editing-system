@@ -120,6 +120,23 @@ const Editor = ({
           name: currentUserName,
           color: colorForUser(currentUserId),
         },
+        // The default render omits in-flow content, so the caret span has
+        // zero height and invisible borders. U+2060 (word joiner) is
+        // zero-width but in-flow — it gives the span the font's line height,
+        // matching what yCursorPlugin's own defaultCursorBuilder does.
+        render(user) {
+          const cursor = document.createElement("span");
+          cursor.classList.add("collaboration-carets__caret");
+          cursor.setAttribute("style", `border-color: ${user.color}`);
+          const label = document.createElement("div");
+          label.classList.add("collaboration-carets__label");
+          label.setAttribute("style", `background-color: ${user.color}`);
+          label.insertBefore(document.createTextNode(user.name), null);
+          cursor.insertBefore(document.createTextNode("⁠"), null);
+          cursor.insertBefore(label, null);
+          cursor.insertBefore(document.createTextNode("⁠"), null);
+          return cursor;
+        },
       }),
     ],
     editable: canEdit,
