@@ -112,7 +112,13 @@ export default async function DocumentPage({
         </Alert>
       )}
 
+      {/* Keyed by document id: the App Router reuses this page component
+          across /documents/[id] param navigations, and Editor's Y.Doc and
+          Awareness are created once per mount — without the key, switching
+          documents via the sidebar would keep syncing the previous
+          document's Yjs state into the new one. */}
       <Editor
+        key={id}
         documentId={id}
         currentUserId={session.userId}
         currentUserName={currentUserName}
