@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration"
@@ -11,7 +11,6 @@ import { enqueueUpdate } from "@/lib/outbox";
 import { syncDocument } from "@/lib/sync/engine";
 import { syncAwareness } from "@/lib/sync/awareness";
 import EditorToolbar from "@/components/EditorToolbar";
-import { cn } from "@/lib/utils";
 
 const SYNC_INTERVAL_MS = 3000;
 const PUSH_DEBOUNCE_MS = 800;
@@ -46,6 +45,8 @@ const Editor = ({
 }) => {
   const [doc] = useState(() => new Y.Doc());
   const [awareness] = useState(() => new Awareness(doc));
+  const [wordCount, setWordCount] = useState(0);
+  const awarenessDestroyRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const persistence = new IndexeddbPersistence(documentId, doc);
@@ -91,6 +92,10 @@ const Editor = ({
   }, [documentId, doc]);
 
   useEffect(() => {
+    // Cancel a destroy scheduled by a StrictMode / Fast Refresh replay of
+    // this effect — see the cleanup below.
+    clearTimeout(awarenessDestroyRef.current);
+
     const tick = () => {
       syncAwareness(documentId, awareness).catch((error) => {
         console.error("Awareness sync failed:", error);
@@ -102,7 +107,15 @@ const Editor = ({
 
     return () => {
       clearInterval(intervalId);
-      awareness.destroy();
+      // Awareness.destroy() is unrecoverable: it nulls the local state, and
+      // setLocalStateField() silently no-ops on a null state — so a client
+      // that destroys its awareness never publishes its caret/name again
+      // (it pushes `state: null` to everyone instead). Dev-mode StrictMode
+      // and Fast Refresh replay this effect on a still-mounted component,
+      // so destroying synchronously here killed the carets for the whole
+      // session. Schedule the destroy on a macrotask instead: a replay
+      // cancels it (top of the effect); only a real unmount lets it fire.
+      awarenessDestroyRef.current = setTimeout(() => awareness.destroy(), 0);
     };
   }, [documentId, awareness]);
 
@@ -120,25 +133,52 @@ const Editor = ({
           name: currentUserName,
           color: colorForUser(currentUserId),
         },
+        // U+2060 word joiners are zero-width but in-flow, giving the caret span
+        // its line height. Without them the span has no in-flow content → height 0
+        // → the label's `top: -1.4em` lands inside the text line instead of above it.
+        render: (user) => {
+          const cursor = document.createElement("span");
+          cursor.classList.add("collaboration-carets__caret");
+          cursor.setAttribute("style", `border-color: ${user.color}`);
+          cursor.appendChild(document.createTextNode("⁠"));
+          const label = document.createElement("div");
+          label.classList.add("collaboration-carets__label");
+          label.setAttribute("style", `background-color: ${user.color}`);
+          label.appendChild(document.createTextNode(user.name));
+          cursor.appendChild(label);
+          cursor.appendChild(document.createTextNode("⁠"));
+          return cursor;
+        },
       }),
     ],
     editable: canEdit,
+    onUpdate: ({ editor }) => {
+      const text = editor.getText();
+      setWordCount(
+        text.trim().length === 0 ? 0 : text.trim().split(/\s+/).length,
+      );
+    },
     editorProps: {
       attributes: {
-        class: cn(
-          "min-h-[400px] w-full p-4 focus:outline-none",
-          canEdit ? "rounded-b-md border border-t-0" : "rounded-md border",
-        ),
+        class: "min-h-[60vh] w-full p-8 focus:outline-none",
       },
     },
   });
   if (!editor) {
     return null;
   }
+
   return (
-    <div className="mx-auto w-full max-w-3xl">
-      {canEdit && <EditorToolbar editor={editor} />}
-      <EditorContent editor={editor} />
+    <div className="p-4 sm:p-6">
+      <div className="mx-auto max-w-2xl">
+        <div className="rounded-lg border bg-card shadow-sm">
+          {canEdit && <EditorToolbar editor={editor} />}
+          <EditorContent editor={editor} />
+        </div>
+        <p className="mt-2 text-right text-xs text-muted-foreground">
+          {wordCount} {wordCount === 1 ? "word" : "words"}
+        </p>
+      </div>
     </div>
   );
 }
