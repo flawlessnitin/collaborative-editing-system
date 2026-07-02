@@ -12,13 +12,16 @@ export default async function AppLayout({
   if (!session) redirect("/login");
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex h-full">
+    <>
+      {/* Desktop sidebar — fixed so the main content scrolls via the body
+          rather than an overflow-auto container, which would clip the
+          absolutely-positioned collaboration caret labels (top: -1.4em). */}
+      <div className="hidden md:flex fixed inset-y-0 left-0 z-20 w-60">
         <AppSidebar />
       </div>
 
-      <div className="flex flex-1 flex-col min-h-0">
+      {/* Content area — shifted right of the sidebar on desktop */}
+      <div className="flex flex-col min-h-screen md:pl-60">
         {/* Mobile-only top bar */}
         <div className="flex md:hidden items-center gap-3 border-b px-4 py-3 bg-card sticky top-0 z-10">
           <MobileSidebarDrawer>
@@ -29,8 +32,8 @@ export default async function AppLayout({
           </span>
         </div>
 
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1">{children}</main>
       </div>
-    </div>
+    </>
   );
 }
